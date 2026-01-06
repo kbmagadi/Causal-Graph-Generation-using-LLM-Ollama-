@@ -9,6 +9,7 @@ from outcome_restrictions import enforce_outcome_restrictions
 from redundancy_detector import detect_redundant_edges
 from graph_validator import validate_graph
 from yaml_writer import write_graph
+from behavorial_backfill import backfill_behavioral_causes
 
 
 def main():
@@ -33,6 +34,8 @@ def main():
     all_edges = prune_downstream_causes(all_edges, metrics)
     all_edges = enforce_outcome_restrictions(all_edges, metrics)
 
+    # Behavorial backfill
+    all_edges = backfill_behavioral_causes(all_edges, metrics)
     # Structural validation
     validate_graph(all_edges, metrics)
 

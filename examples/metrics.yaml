@@ -1,42 +1,37 @@
 metrics:
-  Signups:
+  Traffic:
     type: base
-    description: Number of new user signups
+    description: Website visits
 
-  Active Users:
+  Sessions:
     type: derived
-    formula: signups * activation_rate
-    description: Number of users actively using the product
+    formula: traffic * session_factor
+    description: User sessions
 
-  Activation Rate:
+  Conversion Rate:
     type: derived
-    formula: activated_users / signups
-    description: Percentage of signups that become active users
+    formula: orders / sessions
+    description: Conversion rate
 
-  Engagement Score:
+  Orders:
     type: derived
-    formula: feature_events / active_users
-    description: Average engagement level per active user
+    formula: sessions * conversion_rate
+    description: Number of orders
 
-  Churn Rate:
-    type: derived
-    formula: churned_users / active_users
-    description: Percentage of active users who churn
-
-  Retained Users:
-    type: derived
-    formula: active_users * (1 - churn_rate)
-    description: Number of users retained after churn
-
-  Average Revenue Per User:
+  Average Order Value:
     type: base
-    description: Average revenue generated per active user
+    description: Revenue per order
 
-  Monthly Recurring Revenue:
+  Revenue:
     type: derived
-    formula: retained_users * average_revenue_per_user
-    description: Monthly recurring revenue (MRR)
+    formula: orders * average_order_value
+    description: Total revenue
 
-  Support Tickets:
+  Page Load Time:
     type: base
-    description: Number of customer support tickets raised
+    description: Avg page load time
+
+  Bounce Rate:
+    type: derived
+    formula: bounced_sessions / sessions
+    description: Bounce percentage
