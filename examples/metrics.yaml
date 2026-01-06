@@ -1,0 +1,42 @@
+metrics:
+  Signups:
+    type: base
+    description: Number of new user signups
+
+  Active Users:
+    type: derived
+    formula: signups * activation_rate
+    description: Number of users actively using the product
+
+  Activation Rate:
+    type: derived
+    formula: activated_users / signups
+    description: Percentage of signups that become active users
+
+  Engagement Score:
+    type: derived
+    formula: feature_events / active_users
+    description: Average engagement level per active user
+
+  Churn Rate:
+    type: derived
+    formula: churned_users / active_users
+    description: Percentage of active users who churn
+
+  Retained Users:
+    type: derived
+    formula: active_users * (1 - churn_rate)
+    description: Number of users retained after churn
+
+  Average Revenue Per User:
+    type: base
+    description: Average revenue generated per active user
+
+  Monthly Recurring Revenue:
+    type: derived
+    formula: retained_users * average_revenue_per_user
+    description: Monthly recurring revenue (MRR)
+
+  Support Tickets:
+    type: base
+    description: Number of customer support tickets raised
