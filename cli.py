@@ -4,7 +4,7 @@ from ollama_causal_proposer import propose_causal_edges
 from graph_postprocess import normalize_edges
 from graph_validator import validate_graph
 from yaml_writer import write_graph
-
+from deterministic_extractor import extract_deterministic_edges
 
 def main():
     parser = argparse.ArgumentParser(description="Generate DRAFT causal graph")
@@ -15,11 +15,27 @@ def main():
 
     metrics = load_metrics(args.metrics)
 
-    edges = propose_causal_edges(metrics)
-    edges = normalize_edges(edges, metrics.keys())  
-    validate_graph(edges, metrics)
+    # 1. Deterministic edges (mandatory)
+    deterministic_edges = extract_deterministic_edges(metrics)
 
-    write_graph(edges, metrics.keys(), args.output)
+    print("Deterministic edges:")
+    for e in deterministic_edges:
+        print("  ", e)
+
+    # 2. LLM-suggested edges (optional)
+    llm_edges = propose_causal_edges(metrics)
+
+    # 3. Merge (deterministic edges always included)
+    all_edges = list(set(deterministic_edges + llm_edges))
+
+    # 4. Normalize & filter
+    all_edges = normalize_edges(all_edges, metrics.keys())
+
+    # 5. Validate structure
+    validate_graph(all_edges, metrics)
+
+    # 6. Write output
+    write_graph(all_edges, metrics.keys(), args.output)
 
     print(f"Draft causal graph written to {args.output}")
 

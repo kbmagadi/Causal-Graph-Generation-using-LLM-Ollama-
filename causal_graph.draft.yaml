@@ -1,27 +1,31 @@
 metrics:
   Activation Rate:
-    causes: []
+    causes:
+    - Signups
   Active Users:
     causes:
-    - Activation Rate
     - Signups
+    - Activation Rate
   Average Revenue Per User:
     causes: []
   Churn Rate:
     causes:
-    - Support Tickets
     - Engagement Score
+    - Active Users
   Engagement Score:
-    causes: []
-  Monthly Recurring Revenue:
     causes:
     - Active Users
-    - Average Revenue Per User
+  Monthly Recurring Revenue:
+    causes:
     - Retained Users
+    - Active Users
+    - Average Revenue Per User
   Retained Users:
     causes:
     - Churn Rate
+    - Active Users
   Signups:
     causes: []
   Support Tickets:
-    causes: []
+    causes:
+    - Retained Users
