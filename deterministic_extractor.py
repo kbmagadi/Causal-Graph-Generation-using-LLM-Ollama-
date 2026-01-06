@@ -3,7 +3,6 @@ import re
 def normalize_name(name: str) -> str:
     return name.lower().replace(" ", "_")
 
-
 def extract_deterministic_edges(metrics: dict) -> list[tuple[str, str]]:
     """
     Extract guaranteed metric dependencies from formulas.

@@ -1,10 +1,15 @@
 import argparse
 from metric_loader import load_metrics
+from deterministic_extractor import extract_deterministic_edges
 from ollama_causal_proposer import propose_causal_edges
 from graph_postprocess import normalize_edges
+from downstream_pruner import prune_downstream_causes
+from population_pruner import prune_population_causes
+from outcome_restrictions import enforce_outcome_restrictions
+from redundancy_detector import detect_redundant_edges
 from graph_validator import validate_graph
 from yaml_writer import write_graph
-from deterministic_extractor import extract_deterministic_edges
+
 
 def main():
     parser = argparse.ArgumentParser(description="Generate DRAFT causal graph")
@@ -15,29 +20,32 @@ def main():
 
     metrics = load_metrics(args.metrics)
 
-    # 1. Deterministic edges (mandatory)
+    # Merge deterministic + LLM edges
     deterministic_edges = extract_deterministic_edges(metrics)
-
-    print("Deterministic edges:")
-    for e in deterministic_edges:
-        print("  ", e)
-
-    # 2. LLM-suggested edges (optional)
     llm_edges = propose_causal_edges(metrics)
-
-    # 3. Merge (deterministic edges always included)
     all_edges = list(set(deterministic_edges + llm_edges))
 
-    # 4. Normalize & filter
+    # Normalize
     all_edges = normalize_edges(all_edges, metrics.keys())
 
-    # 5. Validate structure
+    # Hard pruning
+    all_edges = prune_population_causes(all_edges)
+    all_edges = prune_downstream_causes(all_edges, metrics)
+    all_edges = enforce_outcome_restrictions(all_edges, metrics)
+
+    # Structural validation
     validate_graph(all_edges, metrics)
 
-    # 6. Write output
+    # Redundancy warning (soft)
+    redundant = detect_redundant_edges(all_edges)
+    if redundant:
+        print(f"⚠️ Redundant edges detected (ignore if intentional): {redundant}")
+
+    # Write output
     write_graph(all_edges, metrics.keys(), args.output)
 
     print(f"Draft causal graph written to {args.output}")
+
 
 if __name__ == "__main__":
     main()

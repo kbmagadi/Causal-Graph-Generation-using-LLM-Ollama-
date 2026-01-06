@@ -20,31 +20,70 @@ def propose_causal_edges(metrics: dict) -> list[tuple[str, str]]:
     )
 
     prompt = f"""
-        You are helping define a DRAFT causal graph between business METRICS.
+        You are an assistant helping to draft a CAUSAL GRAPH between business METRICS.
 
-        IMPORTANT RULES:
-        - ONLY use metric names listed below
-        - A metric CANNOT be caused by metrics that logically depend on it
-        - Do NOT assign downstream or outcome metrics as causes
-        - Prefer minimal, direct causes over many weak causes
-        - If unsure, OMIT the edge
-        - Do NOT invent new nodes
-        - Do NOT use constants, parameters, or formula variables
-        - Causes and effects MUST both be valid metric names
-        - Suggest ONLY direct causal relationships
-        - Use metric semantics, not correlation
-        - Output ONLY valid JSON in this format:
+        This graph is used for ALERT EXPLANATION, not statistical analysis.
+
+        Your primary goal is to produce a MINIMAL, DEFENSIBLE, NON-REDUNDANT causal structure.
+
+        =====================
+        HARD CONSTRAINTS
+        =====================
+
+        1. ONLY use metric names from the list below.
+        2. Do NOT invent new metrics, parameters, constants, or formula variables.
+        3. Causes and effects MUST both be valid metric names.
+        4. Suggest ONLY DIRECT causal relationships (no indirect or shortcut edges).
+        5. A metric MUST NOT be caused by:
+        - downstream metrics
+        - outcome metrics
+        - metrics that logically depend on it
+        6. If a causal relationship is weak, indirect, or uncertain — OMIT it.
+        7. Prefer the MOST IMPORTANT cause over many weak causes.
+        8. Suggest AT MOST TWO causes per metric.
+        9. If a metric has no strong, defensible cause — return NO edge for it.
+        10. A metric representing a population size (e.g. users, sessions) should not directly cause loss-based metrics (e.g. churn, retention).
+        11. Metrics representing population size should not directly cause churn, retention, or revenue.
+        
+        =====================
+        IMPORTANT CAUSAL RULES
+        =====================
+
+        - If A → B → C exists, do NOT add A → C.
+        - If a metric explains another metric via an intermediate step, do NOT skip the step.
+        - Do NOT model correlation or coincidence — only causal influence.
+        - Think in terms of business explanation, not formulas.
+
+        =====================
+        OUTPUT FORMAT (STRICT)
+        =====================
+
+        Output ONLY valid JSON.
+        No text, no explanations, no markdown.
+
+        The output MUST be a JSON array of objects in this exact format:
 
         [
         {{ "cause": "MetricA", "effect": "MetricB" }}
         ]
 
-        VALID METRIC NAMES:
+        =====================
+        VALID METRIC NAMES
+        =====================
         {", ".join(metrics.keys())}
 
-        METRIC DEFINITIONS:
+        =====================
+        METRIC DEFINITIONS
+        =====================
         {metric_descriptions}
-    """
+
+        =====================
+        TASK
+        =====================
+
+        Propose a SMALL set of high-confidence, direct causal edges.
+        This is a DRAFT and will be reviewed by humans.
+        """
 
     payload = {
         "model": MODEL,
