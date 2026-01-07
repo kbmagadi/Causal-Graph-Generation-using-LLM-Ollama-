@@ -6,25 +6,20 @@ SAFE_BACKFILL_RULES = {
 }
 
 def backfill_behavioral_causes(edges, metrics):
-    """
-    Restore missing causal parents for derived metrics
-    WITHOUT introducing cycles.
-    """
-
     causes_by_effect = {}
-    for src, dst in edges:
+    for edge in edges:
+        if len(edge) == 3:
+            src, dst, _ = edge
+        else:
+            src, dst = edge
         causes_by_effect.setdefault(dst, set()).add(src)
 
     new_edges = set(edges)
-
     metric_names = list(metrics.keys())
 
     for metric in metric_names:
-        # Skip base metrics
         if metrics[metric].get("type") == "base":
             continue
-
-        # Skip if it already has causes
         if metric in causes_by_effect and causes_by_effect[metric]:
             continue
 
@@ -36,6 +31,6 @@ def backfill_behavioral_causes(edges, metrics):
                     src_l = src.lower()
                     if any(a in src_l for a in allowed_sources):
                         if src != metric:
-                            new_edges.add((src, metric))
+                            new_edges.add((src, metric, "safe_backfill"))
 
     return list(new_edges)

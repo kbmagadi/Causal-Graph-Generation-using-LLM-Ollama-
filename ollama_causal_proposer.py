@@ -4,8 +4,7 @@ import json
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL = "mistral:7b-instruct"
 
-
-def propose_causal_edges(metrics: dict) -> list[tuple[str, str]]:
+def propose_causal_edges(metrics: dict) -> list[tuple[str, str, str]]:
     """
     Returns a list of (cause, effect) edges.
     This is a DRAFT only and must be reviewed.
@@ -44,7 +43,7 @@ def propose_causal_edges(metrics: dict) -> list[tuple[str, str]]:
         9. If a metric has no strong, defensible cause — return NO edge for it.
         10. A metric representing a population size (e.g. users, sessions) should not directly cause loss-based metrics (e.g. churn, retention).
         11. Metrics representing population size should not directly cause churn, retention, or revenue.
-        
+
         =====================
         IMPORTANT CAUSAL RULES
         =====================
@@ -106,7 +105,7 @@ def propose_causal_edges(metrics: dict) -> list[tuple[str, str]]:
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Invalid JSON extracted:\n{json_block}") from e
 
-    return [(e["cause"], e["effect"]) for e in edges]
+    return [(e["cause"], e["effect"], "llm") for e in edges]
 
 def extract_json_array(text: str) -> str:
     start = text.find("[")

@@ -1,30 +1,38 @@
 import re
 
 def normalize_name(name: str) -> str:
-    return name.lower().replace(" ", "_")
+    return re.sub(r"[^a-z0-9]", "", name.lower())
 
-def extract_deterministic_edges(metrics: dict) -> list[tuple[str, str]]:
-    """
-    Extract guaranteed metric dependencies from formulas.
-    Returns list of (cause, effect) edges.
-    """
 
+def extract_deterministic_edges(metrics: dict):
     edges = []
-    metric_map = {
+
+    normalized_metrics = {
         normalize_name(name): name
         for name in metrics.keys()
     }
 
-    for effect_metric, meta in metrics.items():
+    for effect, meta in metrics.items():
         formula = meta.get("formula")
         if not formula:
             continue
 
-        normalized_formula = normalize_name(formula)
+        norm_formula = normalize_name(formula)
 
-        for norm_name, original_name in metric_map.items():
-            if norm_name in normalized_formula:
-                if original_name != effect_metric:
-                    edges.append((original_name, effect_metric))
+        # 1️⃣ Handle division explicitly (denominator → rate)
+        if "/" in formula:
+            parts = formula.split("/")
+            if len(parts) == 2:
+                denominator = normalize_name(parts[1])
 
-    return list(set(edges)) 
+                for norm_name, original in normalized_metrics.items():
+                    if norm_name == denominator:
+                        edges.append((original, effect, "deterministic"))
+
+        # 2️⃣ Handle multiplication (all inputs cause output)
+        if "*" in formula:
+            for norm_name, original in normalized_metrics.items():
+                if norm_name in norm_formula and original != effect:
+                    edges.append((original, effect, "deterministic"))
+
+    return list(set(edges))

@@ -1,15 +1,23 @@
 def normalize_edges(edges, valid_metrics):
-    cleaned = set()
+    cleaned = {}
 
-    for src, dst in edges:
+    for edge in edges:
+        if len(edge) == 3:
+            src, dst, source = edge
+        elif len(edge) == 2:
+            src, dst = edge
+            source = "unknown"
+        else:
+            raise ValueError(f"Invalid edge shape: {edge}")
+
         src = src.strip()
         dst = dst.strip()
 
-        # Filter out non-metric nodes
         if src not in valid_metrics or dst not in valid_metrics:
             continue
+        if src == dst:
+            continue
 
-        if src != dst:
-            cleaned.add((src, dst))
+        cleaned[(src, dst)] = source  # keep last-seen source
 
-    return list(cleaned)
+    return [(src, dst, source) for (src, dst), source in cleaned.items()]

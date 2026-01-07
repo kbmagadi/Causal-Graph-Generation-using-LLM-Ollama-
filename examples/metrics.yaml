@@ -1,37 +1,38 @@
 metrics:
-  Traffic:
+  Impressions:
     type: base
-    description: Website visits
+    description: Number of times content is shown
 
-  Sessions:
+  Clicks:
     type: derived
-    formula: traffic * session_factor
-    description: User sessions
+    formula: impressions * click_through_rate
+    description: Number of clicks generated from impressions
 
-  Conversion Rate:
+  Click Through Rate:
     type: derived
-    formula: orders / sessions
-    description: Conversion rate
+    formula: clicks / impressions
+    description: Percentage of impressions that result in clicks
 
-  Orders:
+  Signups:
     type: derived
-    formula: sessions * conversion_rate
-    description: Number of orders
+    formula: clicks * signup_conversion_rate
+    description: Number of users who sign up after clicking
 
-  Average Order Value:
+  Activation Rate:
+    type: derived
+    formula: activated_users / signups
+    description: Percentage of signups that become activated users
+
+  Activated Users:
+    type: derived
+    formula: signups * activation_rate
+    description: Number of users who activate successfully
+
+  Average Revenue Per User:
     type: base
-    description: Revenue per order
+    description: Average revenue generated per active user
 
   Revenue:
     type: derived
-    formula: orders * average_order_value
-    description: Total revenue
-
-  Page Load Time:
-    type: base
-    description: Avg page load time
-
-  Bounce Rate:
-    type: derived
-    formula: bounced_sessions / sessions
-    description: Bounce percentage
+    formula: activated_users * average_revenue_per_user
+    description: Total revenue generated

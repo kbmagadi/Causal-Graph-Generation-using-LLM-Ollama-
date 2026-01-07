@@ -1,8 +1,15 @@
 def validate_graph(edges, metrics):
+    """
+    Validates:
+    1. All nodes exist
+    2. No self loops
+    3. Graph is acyclic (cycle detection handled separately)
+    """
+
     metric_names = set(metrics.keys())
 
     # 1. Validate nodes
-    for src, dst in edges:
+    for src, dst, _ in edges:
         if src not in metric_names:
             raise ValueError(f"Unknown cause metric: {src}")
         if dst not in metric_names:
@@ -10,31 +17,43 @@ def validate_graph(edges, metrics):
         if src == dst:
             raise ValueError(f"Self-causation detected for metric: {src}")
 
-    # 2. Build adjacency list (cause -> effect)
+def detect_cycle(edges):
+    """
+    Detects a cycle in the graph.
+    Returns the cycle path as a list of nodes if found, else None.
+    """
+
+    # Build adjacency list
     graph = {}
-    for src, dst in edges:
+    for src, dst, _ in edges:
         graph.setdefault(src, []).append(dst)
 
-    # 3. Cycle detection (DFS)
     visited = set()
-    rec_stack = set()
+    stack = []
 
     def dfs(node):
-        if node in rec_stack:
-            raise ValueError(f"Causal cycle detected involving metric: {node}")
+        if node in stack:
+            # return the cycle path
+            cycle_start_index = stack.index(node)
+            return stack[cycle_start_index:] + [node]
 
         if node in visited:
-            return
+            return None
 
         visited.add(node)
-        rec_stack.add(node)
+        stack.append(node)
 
         for neighbor in graph.get(node, []):
-            dfs(neighbor)
+            cycle = dfs(neighbor)
+            if cycle:
+                return cycle
 
-        rec_stack.remove(node)
+        stack.pop()
+        return None
 
-    # Run DFS on all nodes
-    for metric in metric_names:
-        if metric not in visited:
-            dfs(metric)
+    for node in graph:
+        cycle = dfs(node)
+        if cycle:
+            return cycle
+
+    return None

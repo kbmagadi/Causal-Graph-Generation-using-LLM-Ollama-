@@ -1,16 +1,15 @@
-# pruning/population_pruner.py
-
 POPULATION_KEYWORDS = ["users", "sessions", "traffic", "visits"]
 LOSS_KEYWORDS = ["churn", "retained"]
 
 def prune_population_causes(edges):
-    """
-    Remove edges where population-size metrics are incorrectly
-    treated as causes of loss-based or outcome metrics.
-    """
     pruned = []
 
-    for src, dst in edges:
+    for src, dst, edge_type in edges:
+        # 🚨 NEVER prune deterministic edges
+        if edge_type == "deterministic":
+            pruned.append((src, dst, edge_type))
+            continue
+
         src_l = src.lower()
         dst_l = dst.lower()
 
@@ -19,6 +18,6 @@ def prune_population_causes(edges):
             print(f"❌ Pruned population-size edge: {src} → {dst}")
             continue
 
-        pruned.append((src, dst))
+        pruned.append((src, dst, edge_type))
 
     return pruned
